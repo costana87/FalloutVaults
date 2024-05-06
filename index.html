@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fallout Vault Locations</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.0/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
+
+  <style>
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: "whitesmoke";
+      font-family: "Noto Sans", sans-serif;
+      color: #3d3d3d;
+    }
+    h1 {
+      position: absolute;
+      margin-top: 0;
+      top: 10px;
+      left: 45px;
+      font-size: 2em;
+      font-family: "Lora", serif;
+      letter-spacing: .04em;
+      padding: 10px 15px;
+      background: rgba(256, 256, 256, .4);
+      border: 1px solid grey;
+      border-radius: 3px;
+      z-index: 800;
+    }
+
+    html, body, #map { width: 100%; height: 100%; margin: 0; background: #fff; }
+  
+    section {
+			position: absolute;
+			bottom: 0;
+			left: 10px;
+			width: 280px;
+			font-family: "Lora", serif;
+      margin: 20px auto;
+			padding: 0 15px;
+			background: rgba(256, 256, 256);
+			border: 1px solid grey;
+			border-radius: 3px;
+			z-index: 800;
+		}
+
+		p {
+			font-size: .8em;
+			line-height: 1.5em;
+		}
+
+		a {
+			color: #005daa;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+    .legend {
+            line-height: 40px;
+            font-size: 18px;
+            width: 230px;
+            font-family: "Lora", serif;
+            color: #333333;
+            padding: 6px 8px;
+            background: white;
+            background: rgba(255,255,255,0.5);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .legend i {
+            width: 20px;
+            height: 20px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.9;
+        }
+        .legend img {
+            width: 16px;
+            height: 16px;
+            margin-right: 3px;
+            float: left;
+        }
+        .legend p {
+            font-size: 14px;
+            line-height: 20px;
+            margin: 0;
+        }
+    
+  </style>
+  
+  <script src="https://unpkg.com/leaflet@1.7.0/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/1.3.4/chroma.min.js"></script>
+</head>
+<body>
+
+  <h1>Fallout Vault Locations</h1>
+
+  
+<div id="map"></div>
+
+<section>
+  <h2>Fallout Vaults</h2>
+
+  <p>In the Fallout series, vaults are vast underground shelters designed to protect inhabitants from the devastating effects of nuclear war. Initially presented as a means of ensuring the survival of humanity, these vaults were constructed by Vault-Tec Corporation, a fictional company within the game's universe. Each vault is equipped with advanced technology, self-sustaining systems, and amenities to sustain life for extended periods. However, Vault-Tec's true intentions often veer into darker territory, with many vaults serving as sites for sociological experiments rather than straightforward shelters. These experiments range from testing the effects of isolation and social hierarchy to more extreme scenarios. As players explore the post-apocalyptic wasteland in the Fallout games, they encounter various vaults, each with its own unique history, inhabitants, and secrets waiting to be uncovered.</p>
+
+</section>
+
+<script>
+
+
+  var mymap = L.map('map', {
+    center: [39.8283,-98.5795], 
+    zoom: 4.5,  
+    detectRetina: true 
+  });
+
+ 
+  
+  L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(mymap);
+
+
+  
+  var vault_locations = null;
+
+  
+  vault_locations = L.geoJson.ajax("assets/vault.geojson",{
+    
+    onEachFeature: function (feature, layer) {
+      layer.bindPopup(feature.properties.Purpose);
+    },
+    
+    
+  
+    attribution: 'Fallout Cannon Vault Locations'
+  });
+
+  vault_locations.addTo(mymap);
+
+  L.geoJson.ajax("assets/Factions.geojson").addTo(mymap);
+
+  var colors = ['#FFFF00', '#008000', '#800000', '#808000', '#0000ff', '#808080'];
+
+  function setColor(Faction) {
+    var id;
+    if (Faction == "Great_Khans") {
+        id = 0;
+    } else if (Faction == "NCR") {
+        id = 1;
+    } else if (Faction == "Legion") {
+        id = 2;
+    } else if (Faction == "Enclave") {
+        id = 3;
+    } else if (Faction == "Brotherhood") {
+        id = 4;
+    } else {
+        id = 5;
+    }
+    return colors[id];
+  }
+
+  function style(feature) {
+    return {
+        fillColor: setColor(feature.properties.Faction),
+        fillOpacity: 0.6,
+        weight:1.2,
+        opacity: 1,
+        color: '#000000',
+    };
+  }
+
+  L.geoJson.ajax("assets/Factions.geojson", {
+    style: style
+}).addTo(mymap);
+
+var legend = L.control({position: 'topright'});
+    
+    legend.onAdd = function () {
+
+    var div = L.DomUtil.create('div', 'legend');
+        
+        div.innerHTML += '<b>Reigning Faction in Each State</b><br />';
+        
+        div.innerHTML += '<i style="background: ' + colors[0] + '; opacity: 0.5"></i><p>Great Khans</p>';
+        div.innerHTML += '<i style="background: ' + colors[4] + '; opacity: 0.5"></i><p>Brotherhood</p>';
+        div.innerHTML += '<i style="background: ' + colors[3] + '; opacity: 0.5"></i><p>Enclave</p>';
+        div.innerHTML += '<i style="background: ' + colors[2] + '; opacity: 0.5"></i><p>Legion</p>';
+        div.innerHTML += '<i style="background: ' + colors[1] + '; opacity: 0.5"></i><p>NCR</p>';
+        div.innerHTML += '<i style="background: ' + colors[5] + '; opacity: 0.5"></i><p>NA</p>';
+        return div;
+    };
+
+    legend.addTo(mymap);
+
+</script>
+</body>
+</html>
